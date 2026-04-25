@@ -80,7 +80,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://surajrasail
   <body>
     <TerminalPreloader />
     <a class="skip-link" href="#main">skip to content</a>
-    <Nav transition:persist="site-nav" />
+    <Nav />
     <main id="main">
       <slot />
     </main>
