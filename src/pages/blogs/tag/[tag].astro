@@ -1,0 +1,102 @@
+---
+/**
+ * /blogs/tag/[tag] — tag-filtered writing index.
+ *
+ * One static path per unique tag. Renders the same list shape as the
+ * blogs index but filtered to entries matching the tag.
+ */
+
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Layout from '../../../layouts/Layout.astro';
+import Reveal from '../../../components/Reveal.astro';
+import BlogCard from '../../../components/BlogCard.astro';
+
+type BlogEntry = CollectionEntry<'blogs'>;
+
+interface PathProps {
+  tag: string;
+  posts: BlogEntry[];
+}
+
+export async function getStaticPaths() {
+  const entries: BlogEntry[] = await getCollection(
+    'blogs',
+    ({ data }) => !data.draft,
+  );
+
+  const tagSet = new Set<string>();
+  for (const entry of entries) {
+    for (const tag of entry.data.tags) {
+      tagSet.add(tag);
+    }
+  }
+
+  const tags: string[] = [...tagSet];
+
+  return tags.map((tag: string) => {
+    const posts: BlogEntry[] = entries
+      .filter((e: BlogEntry) => e.data.tags.includes(tag))
+      .sort(
+        (a: BlogEntry, b: BlogEntry): number =>
+          b.data.publishedAt.getTime() - a.data.publishedAt.getTime(),
+      );
+    return {
+      params: { tag },
+      props: { tag, posts } satisfies PathProps,
+    };
+  });
+}
+
+type Props = PathProps;
+
+const { tag, posts } = Astro.props as Props;
+
+const pageTitle = `~/tag/${tag} — ~/blogs`;
+const pageDescription = `Posts tagged ${tag}.`;
+---
+
+<Layout title={pageTitle} description={pageDescription}>
+  <section class="container-page pt-16 pb-6">
+    <Reveal as="div" delay={0} y={12}>
+      <p class="crumbs">~/ / <span>blogs</span> / <span>tag</span> / <span>{tag}</span></p>
+    </Reveal>
+    <Reveal as="div" delay={80} y={16}>
+      <h1 class="font-mono text-[clamp(24px,3.5vw,40px)] font-bold tracking-tight mt-3">~/tag/{tag}</h1>
+    </Reveal>
+    <Reveal as="div" delay={140} y={12}>
+      <p class="font-mono text-xs text-faint mt-3">
+        // {posts.length} {posts.length === 1 ? 'post' : 'posts'}
+      </p>
+    </Reveal>
+    <Reveal as="div" delay={200} y={12}>
+      <a
+        class="font-mono text-xs text-muted hover:text-accent transition-colors mt-3 inline-block"
+        href="/blogs"
+      >
+        ↩ all writing
+      </a>
+    </Reveal>
+  </section>
+
+  <section class="container-page pb-24" aria-label={`posts tagged ${tag}`}>
+    {posts.length === 0 ? (
+      <Reveal as="div" delay={0}>
+        <p class="font-mono text-xs text-faint">// no posts under this tag.</p>
+      </Reveal>
+    ) : (
+      <ul class="flex flex-col" role="list">
+        {posts.map((entry: BlogEntry, i: number) => (
+          <Reveal as="li" delay={i * 80} y={20}>
+            <BlogCard
+              href={`/blogs/${entry.slug}/`}
+              title={entry.data.title}
+              summary={entry.data.summary}
+              publishedAt={entry.data.publishedAt}
+              tags={entry.data.tags}
+            />
+          </Reveal>
+        ))}
+      </ul>
+    )}
+  </section>
+</Layout>

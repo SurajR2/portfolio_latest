@@ -1,0 +1,90 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import SmoothScroll from '../components/SmoothScroll.astro';
+import TerminalPreloader from '../components/TerminalPreloader.astro';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'Suraj Rasaili BK — Lead Software Developer',
+  description = 'Lead software developer at TD (Chatblix). Backend systems and full-stack delivery with NestJS, TypeScript, PostgreSQL, React. Domain-Driven Design and Clean Architecture in production.',
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://surajrasaili.com.np').toString();
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#0A0A0A" />
+    <meta name="color-scheme" content="dark" />
+
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content="surajrasaili.com.np" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    />
+
+    <title>{title}</title>
+
+    <ClientRouter />
+
+    <!--
+      Pre-paint boot-preloader gate. If the user has already seen the
+      preloader this session (or prefers reduced motion), set a flag on
+      <html> BEFORE the body renders. CSS then hides the overlay with
+      no flash on view-transition navigations or hard refreshes.
+    -->
+    <script is:inline>
+      (function () {
+        try {
+          var seen = sessionStorage.getItem('suraj.boot.shown') === '1';
+          var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          if (seen || reduce) {
+            document.documentElement.classList.add('boot-seen');
+          }
+        } catch (_e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <TerminalPreloader />
+    <a class="skip-link" href="#main">skip to content</a>
+    <Nav transition:persist="site-nav" />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer transition:persist="site-footer" />
+    <SmoothScroll />
+  </body>
+</html>

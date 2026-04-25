@@ -1,0 +1,61 @@
+---
+/**
+ * WorkCard.astro
+ *
+ * Mono "card-system" pattern from board.html section 06.
+ * Whole card is a single <a> so it's keyboard-reachable.
+ *
+ *   // 2024 · payments-platform · lead engineer
+ *   High-throughput settlement engine
+ *   Replaced batch reconciliation with event-sourced ledger…
+ *   [postgres] [kafka] [go] [event-sourcing] [outbox]
+ */
+
+import Reveal from './Reveal.astro';
+
+export interface Props {
+  /** Destination URL (e.g. /work/settlement-engine). */
+  href: string;
+  /** Top-of-card meta line, e.g. "2024 · payments-platform · lead engineer". */
+  meta: string;
+  /** Card headline. */
+  title: string;
+  /** 1–2 sentence summary, clamped to 2 lines. */
+  summary: string;
+  /** Tag pills, lowercase. */
+  tags: string[];
+  /** Optional Reveal stagger in ms. */
+  delay?: number;
+}
+
+const { href, meta, title, summary, tags, delay = 0 } = Astro.props;
+---
+
+<Reveal as="article" delay={delay} y={20}>
+  <a
+    href={href}
+    aria-label={`${title} — case study`}
+    class="block group bg-base-2 border border-line rounded p-6 transition-colors duration-150 hover:border-accent focus-visible:border-accent"
+  >
+    <div class="font-mono text-[10px] uppercase tracking-widest text-faint mb-3">
+      {`// ${meta}`}
+    </div>
+    <h3
+      class="font-mono text-lg font-semibold text-fg mb-2 transition-colors duration-150 group-hover:text-accent"
+    >
+      {title}
+    </h3>
+    <p class="font-mono text-[13px] leading-relaxed text-muted mb-4 line-clamp-2">
+      {summary}
+    </p>
+    {tags.length > 0 && (
+      <ul class="flex flex-wrap gap-1.5" aria-label="tags">
+        {tags.map((t) => (
+          <li class="font-mono text-[10px] px-2 py-0.5 border border-line-strong rounded-sm text-muted">
+            {t}
+          </li>
+        ))}
+      </ul>
+    )}
+  </a>
+</Reveal>

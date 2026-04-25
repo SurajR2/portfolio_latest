@@ -1,0 +1,239 @@
+---
+interface NavLink {
+  href: string;
+  label: string;
+}
+
+const links: readonly NavLink[] = [
+  { href: '/work', label: '~/work' },
+  { href: '/blogs', label: '~/blogs' },
+  { href: '/stack', label: '~/stack' },
+  { href: '/contact', label: '~/contact' },
+] as const;
+
+const pathname: string = Astro.url.pathname;
+
+const isActive = (href: string): boolean => {
+  if (href === '/') return pathname === '/';
+  return pathname === href || pathname.startsWith(`${href}/`);
+};
+---
+
+<header
+  class="sticky top-0 z-40 backdrop-blur-md bg-base/80 border-b border-line [-webkit-backdrop-filter:saturate(140%)_blur(10px)] [backdrop-filter:saturate(140%)_blur(10px)]"
+  data-nav
+>
+  <div class="container-page flex items-center justify-between py-4">
+    <a class="inline-flex items-baseline font-mono text-sm font-semibold text-fg" href="/" aria-label="suraj — home">
+      <span class="text-accent">~/</span><span class="text-fg">suraj</span>
+      <span
+        class="inline-block w-[0.55em] h-[1.1em] bg-accent ml-[0.2em] translate-y-[0.12em] motion-safe:animate-[nav-blink_1s_steps(2)_infinite]"
+        aria-hidden="true"
+      ></span>
+    </a>
+
+    <nav class="hidden sm:inline-flex items-center gap-6" aria-label="primary">
+      {links.map((link) => (
+        <a
+          href={link.href}
+          class:list={[
+            'inline-flex items-center min-h-[44px] px-1.5 py-1 font-mono text-xs tracking-wide border-t border-transparent transition-colors duration-150',
+            isActive(link.href)
+              ? 'text-accent !border-accent'
+              : 'text-muted hover:text-accent',
+          ]}
+          aria-current={isActive(link.href) ? 'page' : undefined}
+        >
+          {link.label}
+        </a>
+      ))}
+    </nav>
+
+    <button
+      type="button"
+      class="sm:hidden inline-flex flex-col items-center justify-center w-11 h-11 gap-[5px] border border-line-strong rounded-sm bg-transparent cursor-pointer transition-colors duration-150 hover:border-accent"
+      aria-label="open menu"
+      aria-expanded="false"
+      aria-controls="mobile-sheet"
+      data-toggle
+    >
+      <span class="block w-4 h-px bg-fg"></span>
+      <span class="block w-4 h-px bg-fg"></span>
+    </button>
+  </div>
+
+  <div
+    id="mobile-sheet"
+    class="sheet fixed inset-0 z-50 bg-base-2 flex-col -translate-y-full transition-transform duration-[250ms] ease-[cubic-bezier(0.2,0,0.1,1)] data-[open=true]:translate-y-0"
+    role="dialog"
+    aria-modal="true"
+    aria-label="navigation"
+    data-sheet
+    hidden
+  >
+    <div class="container-page flex items-center justify-between py-4 border-b border-line">
+      <span class="inline-flex items-baseline font-mono text-sm font-semibold text-fg">
+        <span class="text-accent">~/</span><span class="text-fg">suraj</span>
+      </span>
+      <button
+        type="button"
+        class="btn"
+        aria-label="close menu"
+        data-close
+      >
+        <span>[ x ]</span>
+      </button>
+    </div>
+    <nav class="container-page flex flex-col gap-1 py-8" aria-label="mobile">
+      {links.map((link) => (
+        <a
+          href={link.href}
+          class:list={[
+            'sheet-link font-mono text-lg py-3 border-b border-dashed border-line transition-colors duration-150 hover:text-accent',
+            isActive(link.href) ? 'text-accent' : 'text-fg',
+          ]}
+          aria-current={isActive(link.href) ? 'page' : undefined}
+        >
+          {link.label}
+        </a>
+      ))}
+    </nav>
+  </div>
+</header>
+
+<style>
+  /* Cursor blink keyframes — Tailwind cannot express keyframes in utilities. */
+  @keyframes nav-blink {
+    50% { opacity: 0; }
+  }
+
+  /* Honor [hidden] on the sheet, and force-hide the sheet on desktop
+     regardless of [data-open] state. Tailwind variants can't easily
+     express `[hidden] { display: none !important }`. */
+  .sheet[hidden] {
+    display: none !important;
+  }
+  @media (min-width: 641px) {
+    .sheet {
+      display: none !important;
+    }
+  }
+  @media (max-width: 640px) {
+    .sheet:not([hidden]) {
+      display: flex;
+    }
+  }
+</style>
+
+<script>
+  type Nullable<T> = T | null;
+
+  const init = (): void => {
+    const toggle = document.querySelector<HTMLButtonElement>('[data-toggle]');
+    const close = document.querySelector<HTMLButtonElement>('[data-close]');
+    const sheet = document.querySelector<HTMLElement>('[data-sheet]');
+    if (!toggle || !sheet) return;
+
+    const setOpen = (open: boolean): void => {
+      sheet.dataset.open = String(open);
+      toggle.setAttribute('aria-expanded', String(open));
+      if (open) {
+        sheet.removeAttribute('hidden');
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = '';
+        // Defer hidden so the slide-out transition can play
+        window.setTimeout((): void => {
+          if (sheet.dataset.open !== 'true') sheet.setAttribute('hidden', '');
+        }, 260);
+      }
+    };
+
+    toggle.addEventListener('click', (): void => {
+      const open: boolean = sheet.dataset.open !== 'true';
+      setOpen(open);
+    });
+
+    close?.addEventListener('click', (): void => setOpen(false));
+
+    sheet.querySelectorAll<HTMLAnchorElement>('a.sheet-link').forEach((link: HTMLAnchorElement): void => {
+      link.addEventListener('click', (): void => setOpen(false));
+    });
+
+    document.addEventListener('keydown', (event: KeyboardEvent): void => {
+      if (event.key === 'Escape' && sheet.dataset.open === 'true') {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+  };
+
+  // Refresh active-link state for the persisted nav. With
+  // `transition:persist`, the SSR-rendered active classes from the
+  // first-loaded page would otherwise stay frozen.
+  const isActive = (href: string, pathname: string): boolean => {
+    if (href === '/') return pathname === '/';
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
+
+  const ACTIVE_CLASSES: readonly string[] = ['text-accent', '!border-accent'];
+  const INACTIVE_CLASSES: readonly string[] = ['text-muted', 'hover:text-accent'];
+
+  const syncActive = (): void => {
+    const path: string = window.location.pathname;
+    document
+      .querySelectorAll<HTMLAnchorElement>('header[data-nav] nav a[href]')
+      .forEach((a: HTMLAnchorElement): void => {
+        const href: string | null = a.getAttribute('href');
+        if (!href) return;
+        const active: boolean = isActive(href, path);
+        if (active) {
+          a.classList.add(...ACTIVE_CLASSES);
+          a.classList.remove(...INACTIVE_CLASSES);
+          a.setAttribute('aria-current', 'page');
+        } else {
+          a.classList.remove(...ACTIVE_CLASSES);
+          a.classList.add(...INACTIVE_CLASSES);
+          a.removeAttribute('aria-current');
+        }
+      });
+
+    // Sheet links carry their own simpler active style.
+    document
+      .querySelectorAll<HTMLAnchorElement>('[data-sheet] a.sheet-link')
+      .forEach((a: HTMLAnchorElement): void => {
+        const href: string | null = a.getAttribute('href');
+        if (!href) return;
+        const active: boolean = isActive(href, path);
+        a.classList.toggle('text-accent', active);
+        a.classList.toggle('text-fg', !active);
+        if (active) a.setAttribute('aria-current', 'page');
+        else a.removeAttribute('aria-current');
+      });
+  };
+
+  // Run on first load and on Astro view transitions
+  document.addEventListener('astro:page-load', (): void => {
+    init();
+    syncActive();
+  });
+  if (document.readyState !== 'loading') {
+    init();
+    syncActive();
+  } else {
+    document.addEventListener('DOMContentLoaded', (): void => {
+      init();
+      syncActive();
+    });
+  }
+
+  // Reset overflow on navigation
+  document.addEventListener('astro:before-swap', (): void => {
+    document.body.style.overflow = '';
+    const sheet: Nullable<HTMLElement> = document.querySelector('[data-sheet]');
+    if (sheet) {
+      sheet.dataset.open = 'false';
+      sheet.setAttribute('hidden', '');
+    }
+  });
+</script>

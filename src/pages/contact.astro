@@ -1,0 +1,130 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Reveal from '../components/Reveal.astro';
+
+interface Channel {
+  readonly label: string;
+  readonly value: string;
+  readonly href: string;
+}
+
+const channels: readonly Channel[] = [
+  {
+    label: 'email',
+    value: 'surajrasaili190@gmail.com',
+    href: 'mailto:surajrasaili190@gmail.com',
+  },
+  {
+    label: 'phone',
+    value: '+977 9865085797',
+    href: 'tel:+9779865085797',
+  },
+  {
+    label: 'github',
+    value: 'github.com/SurajR2',
+    href: 'https://github.com/SurajR2',
+  },
+  {
+    label: 'linked',
+    value: 'linkedin.com/in/suraj-rasaili-b-k-619426210',
+    href: 'https://www.linkedin.com/in/suraj-rasaili-b-k-619426210/',
+  },
+  {
+    label: 'location',
+    value: 'Pokhara-23, Nepal',
+    href: 'https://maps.google.com/?q=Pokhara-23,Nepal',
+  },
+  {
+    label: 'domain',
+    value: 'surajrasaili.com.np',
+    href: 'https://surajrasaili.com.np',
+  },
+] as const;
+
+const willRespond: readonly string[] = [
+  'backend engineering and full-stack delivery roles',
+  'NestJS / TypeScript / PostgreSQL platform work',
+  'architecture reviews and DDD / Clean Architecture audits',
+  'mentorship, code review, and team-lead engagements',
+] as const;
+
+const willNotRespond: readonly string[] = [
+  'recruiter spam without a role and scope',
+  'generic "exciting opportunity" pitches',
+  'NDA-first conversations without context',
+  'unpaid take-home assignments as first contact',
+] as const;
+---
+
+<Layout
+  title="~/contact — Suraj Rasaili BK"
+  description="Direct line to Suraj Rasaili BK for backend engineering, full-stack delivery, and architecture reviews."
+>
+  <section class="container-page pt-12 pb-24">
+    <Reveal as="header" delay={0}>
+      <p class="crumbs">~/ <span>/</span> contact</p>
+      <h1 class="font-mono text-[clamp(32px,5vw,48px)] font-bold tracking-tight mt-3">
+        contact
+      </h1>
+    </Reveal>
+
+    <Reveal as="div" class="mt-10" delay={60}>
+      <p class="font-mono text-sm text-muted leading-relaxed mb-2">
+        Direct line for technical conversations: backend engineering, full-stack delivery, architecture reviews, and mentorship.
+      </p>
+      <p class="font-mono text-sm text-muted leading-relaxed mb-2">
+        Reply window: 24–48h on weekdays. Based in Pokhara — open to remote work across timezones.
+      </p>
+    </Reveal>
+
+    <Reveal as="div" class="mt-14 border-t border-b border-line py-8" delay={120}>
+      <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 m-0">
+        {channels.map((channel) => (
+          <div class="grid grid-cols-[84px_1fr] gap-3 items-baseline py-1">
+            <dt class="font-mono text-xs text-faint tracking-wide">{channel.label}</dt>
+            <dd class="inline-flex items-baseline gap-2 m-0">
+              <span class="font-mono text-xs text-faint" aria-hidden="true">→</span>
+              <a
+                class="font-mono text-sm text-fg border-b border-dotted border-transparent hover:text-accent hover:border-accent transition-colors"
+                href={channel.href}
+                rel={channel.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+              >
+                {channel.value}
+              </a>
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </Reveal>
+
+    <Reveal as="div" class="mt-16 grid grid-cols-1 md:grid-cols-2 gap-12" delay={180}>
+      <div>
+        <h2 class="font-mono text-xs text-muted tracking-wide font-medium pb-3 mb-5 border-b border-dashed border-line">
+          // will respond to
+        </h2>
+        <ul class="flex flex-col gap-3.5 m-0 p-0" role="list">
+          {willRespond.map((item) => (
+            <li class="grid grid-cols-[16px_1fr] gap-2 items-start font-mono text-[13px] text-fg leading-relaxed">
+              <span class="text-accent font-semibold" aria-hidden="true">+</span>
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="font-mono text-xs text-muted tracking-wide font-medium pb-3 mb-5 border-b border-dashed border-line">
+          // won't respond to
+        </h2>
+        <ul class="flex flex-col gap-3.5 m-0 p-0" role="list">
+          {willNotRespond.map((item) => (
+            <li class="grid grid-cols-[16px_1fr] gap-2 items-start font-mono text-[13px] text-fg leading-relaxed">
+              <span class="text-faint font-semibold" aria-hidden="true">−</span>
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </Reveal>
+  </section>
+</Layout>

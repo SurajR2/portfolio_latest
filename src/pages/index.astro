@@ -1,0 +1,209 @@
+---
+/**
+ * src/pages/index.astro
+ *
+ * Landing page. Composes the hero + three preview sections:
+ *   01 selected work  — grid of latest 3 case studies
+ *   02 writing        — list of latest 3 blog posts
+ *   03 contact        — direct lines, no form
+ *
+ * Content collections (`work`, `blogs`) are pulled with a defensive
+ * try/catch so the page renders gracefully before they're populated.
+ */
+
+import Layout from "../layouts/Layout.astro";
+import Hero from "../components/Hero.astro";
+import SectionHeading from "../components/SectionHeading.astro";
+import WorkCard from "../components/WorkCard.astro";
+import BlogCard from "../components/BlogCard.astro";
+import Reveal from "../components/Reveal.astro";
+
+interface WorkEntryShape {
+    slug: string;
+    data: {
+        title: string;
+        summary: string;
+        role?: string;
+        year: number;
+        stack: string[];
+        metrics?: string[];
+        draft?: boolean;
+    };
+}
+
+interface BlogEntryShape {
+    slug: string;
+    data: {
+        title: string;
+        summary: string;
+        publishedAt: Date;
+        tags: string[];
+        draft?: boolean;
+    };
+}
+
+let workEntries: WorkEntryShape[] = [];
+let blogEntries: BlogEntryShape[] = [];
+
+try {
+    // Lazy import so a missing collections schema doesn't break the build.
+    const { getCollection } = await import("astro:content");
+    const rawWork = (await getCollection(
+        "work",
+        (e: WorkEntryShape) => !e.data.draft,
+    )) as WorkEntryShape[];
+    workEntries = [...rawWork]
+        .sort((a, b) => b.data.year - a.data.year)
+        .slice(0, 3);
+
+    const rawBlogs = (await getCollection(
+        "blogs",
+        (e: BlogEntryShape) => !e.data.draft,
+    )) as BlogEntryShape[];
+    blogEntries = [...rawBlogs]
+        .sort(
+            (a, b) =>
+                b.data.publishedAt.getTime() - a.data.publishedAt.getTime(),
+        )
+        .slice(0, 3);
+} catch (_err) {
+    // Collections not configured yet — fall through to empty state.
+    workEntries = [];
+    blogEntries = [];
+}
+
+const formatMeta = (entry: WorkEntryShape): string => {
+    const parts: string[] = [String(entry.data.year)];
+    if (entry.data.role) parts.push(entry.data.role);
+    return parts.join(" · ");
+};
+---
+
+<Layout>
+    <Hero />
+
+    <!-- 01 — selected work -->
+    <section id="work-preview" class="container-page py-6">
+        <Reveal>
+            <SectionHeading
+                id="work"
+                index="01"
+                title="selected work"
+                meta={`latest · 3 of N`}
+            />
+        </Reveal>
+
+        {
+            workEntries.length > 0 ? (
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {workEntries.map((entry, i) => (
+                        <WorkCard
+                            href={`/work/${entry.slug}`}
+                            meta={formatMeta(entry)}
+                            title={entry.data.title}
+                            summary={entry.data.summary}
+                            tags={entry.data.stack}
+                            delay={i * 80}
+                        />
+                    ))}
+                </div>
+            ) : (
+                <Reveal>
+                    <p class="font-mono text-xs text-faint">
+                        // no entries yet — work log incoming.
+                    </p>
+                </Reveal>
+            )
+        }
+
+        <Reveal delay={240}>
+            <a
+                class="inline-block mt-8 font-mono text-xs text-muted hover:text-accent transition-colors"
+                href="/work">~/work — view all →</a
+            >
+        </Reveal>
+    </section>
+
+    <!-- 02 — writing -->
+    <section id="blog-preview" class="container-page py-8">
+        <Reveal>
+            <SectionHeading
+                id="blogs"
+                index="02"
+                title="writing"
+                meta={`latest · 3 of N`}
+            />
+        </Reveal>
+
+        {
+            blogEntries.length > 0 ? (
+                <ul class="flex flex-col">
+                    {blogEntries.map((entry, i) => (
+                        <BlogCard
+                            href={`/blogs/${entry.slug}`}
+                            title={entry.data.title}
+                            summary={entry.data.summary}
+                            publishedAt={entry.data.publishedAt}
+                            tags={entry.data.tags}
+                            delay={i * 80}
+                        />
+                    ))}
+                </ul>
+            ) : (
+                <Reveal>
+                    <p class="font-mono text-xs text-faint">
+                        // no entries yet — first post in draft.
+                    </p>
+                </Reveal>
+            )
+        }
+
+        <Reveal delay={240}>
+            <a
+                class="inline-block mt-8 font-mono text-xs text-muted hover:text-accent transition-colors"
+                href="/blogs">~/blogs — view all →</a
+            >
+        </Reveal>
+    </section>
+
+    <!-- 03 — contact -->
+    <section id="cta" class="container-page py-8">
+        <Reveal>
+            <SectionHeading id="contact" index="03" title="contact" />
+        </Reveal>
+
+        <Reveal delay={80}>
+            <div>
+                <p class="font-mono text-2xl text-fg mb-3">
+                    <span class="text-accent">$</span> suraj <span
+                        class="text-muted">--contact</span
+                    >
+                </p>
+                <p class="font-mono text-sm text-muted leading-relaxed">
+                    Email:
+                    <a
+                        class="text-fg hover:text-accent transition-colors"
+                        href="mailto:surajrasaili190@gmail.com"
+                        >surajrasaili190@gmail.com</a
+                    >
+                    <span class="text-faint mx-1">·</span>
+                    GitHub:
+                    <a
+                        class="text-fg hover:text-accent transition-colors"
+                        href="https://github.com/SurajR2"
+                        rel="me noopener"
+                        target="_blank">SurajR2</a
+                    >
+                    <span class="text-faint mx-1">·</span>
+                    LinkedIn:
+                    <a
+                        class="text-fg hover:text-accent transition-colors"
+                        href="https://www.linkedin.com/in/suraj-rasaili-b-k-619426210/"
+                        rel="me noopener"
+                        target="_blank">suraj-rasaili-b-k</a
+                    >
+                </p>
+            </div>
+        </Reveal>
+    </section>
+</Layout>

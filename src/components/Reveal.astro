@@ -1,0 +1,85 @@
+---
+/**
+ * Reveal.astro
+ *
+ * Wraps children in a tag that fades + lifts into view on intersection.
+ * Driven by `src/scripts/motion.ts` via the `data-reveal` attribute.
+ * Honors prefers-reduced-motion (no transition, immediately visible).
+ */
+
+type RevealTag = 'div' | 'section' | 'article' | 'header' | 'footer' | 'li';
+
+export interface Props {
+  as?: RevealTag;
+  delay?: number;
+  y?: number;
+  once?: boolean;
+  class?: string;
+}
+
+const {
+  as = 'div',
+  delay = 0,
+  y = 16,
+  once = true,
+  class: classProp,
+} = Astro.props;
+
+const Tag = as;
+const inlineStyle = `--reveal-delay:${delay}ms; --reveal-y:${y}px;`;
+---
+
+<Tag
+  class:list={["reveal", classProp]}
+  style={inlineStyle}
+  data-reveal
+  data-reveal-once={once ? '' : undefined}
+>
+  <slot />
+</Tag>
+
+<style>
+  .reveal {
+    opacity: 0;
+    transform: translate3d(0, var(--reveal-y, 16px), 0);
+    transition:
+      opacity 600ms cubic-bezier(0.2, 0, 0.1, 1),
+      transform 600ms cubic-bezier(0.2, 0, 0.1, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+    will-change: opacity, transform;
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal,
+    .reveal.is-visible {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  import { attachReveal } from '../scripts/motion';
+
+  // Module-level guard: even though Astro deduplicates identical <script>
+  // imports per build, the attachReveal function itself is also idempotent.
+  // Together this prevents duplicate observers when multiple <Reveal /> nodes
+  // are present on the same page.
+  declare global {
+    interface Window {
+      __revealAttached?: boolean;
+    }
+  }
+
+  if (!window.__revealAttached) {
+    window.__revealAttached = true;
+    attachReveal();
+  } else {
+    // A subsequent Reveal mount on the same page — re-scan for new nodes.
+    attachReveal();
+  }
+</script>

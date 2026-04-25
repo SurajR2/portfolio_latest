@@ -1,0 +1,78 @@
+---
+/**
+ * Hero.astro
+ *
+ * Landing hero. Terminal lockup ("~/suraj▮") with brand positioning
+ * lines from docs/brand/board.html section 01 and the prompt-lockup
+ * variant from section 02. No marketing copy — direct positioning.
+ *
+ * Buttons rely on the canonical `.btn` / `.btn-primary` component
+ * classes provided by src/styles/global.css.
+ */
+
+import Reveal from './Reveal.astro';
+---
+
+<section
+  class="relative min-h-[70vh] sm:min-h-[78vh] md:min-h-[82vh] flex items-center border-b border-line"
+  aria-labelledby="hero-tagline"
+>
+  <div class="container-page w-full">
+    <Reveal delay={0}>
+      <div class="crumbs inline-flex gap-2 mb-6">
+        <span>~/</span>
+        <span class="text-muted">/</span>
+        <span>home</span>
+      </div>
+    </Reveal>
+
+    <Reveal delay={80}>
+      <div
+        class="font-mono font-bold tracking-tight text-[clamp(48px,8vw,96px)] leading-[1.05] my-6 inline-flex items-baseline"
+        aria-label="suraj — home directory"
+      >
+        <span class="text-muted">~/</span><span class="text-fg">suraj</span>
+        <span
+          class="inline-block w-[0.55em] h-[1.1em] bg-accent ml-[0.2em] translate-y-[0.12em] motion-safe:animate-[hero-blink_1s_steps(2)_infinite]"
+          aria-hidden="true"
+        ></span>
+      </div>
+    </Reveal>
+
+    <Reveal delay={160}>
+      <p
+        id="hero-tagline"
+        class="font-mono font-semibold text-fg text-[clamp(20px,2.4vw,28px)] leading-[1.35] tracking-tight mb-3"
+      >
+        Lead software engineer. Backend systems and full-stack delivery.
+      </p>
+    </Reveal>
+
+    <Reveal delay={240}>
+      <p class="font-mono text-base text-muted leading-relaxed mb-8">
+        NestJS · TypeScript · PostgreSQL. Domain-Driven Design and Clean Architecture in production.
+      </p>
+    </Reveal>
+
+    <Reveal delay={320}>
+      <div class="flex flex-wrap gap-3 mb-8">
+        <a class="btn btn-primary" href="/work">view ~/work</a>
+        <a class="btn" href="/stack">read ~/stack</a>
+      </div>
+    </Reveal>
+
+    <Reveal delay={400}>
+      <p class="font-mono text-xs text-faint tracking-wide m-0" aria-label="current status">
+        [ role: lead software developer · org: TD (Chatblix) · loc: Pokhara, NP ]
+      </p>
+    </Reveal>
+  </div>
+</section>
+
+<style>
+  /* Cursor blink keyframes — Tailwind utilities cannot express @keyframes. */
+  @keyframes hero-blink {
+    50% { opacity: 0; }
+  }
+
+</style>

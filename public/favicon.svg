@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="suraj">
+  <rect x="2" y="2" width="60" height="60" rx="8" ry="8" fill="#0A0A0A" stroke="#3A3D42" stroke-width="2"/>
+  <path d="M 14 24 L 22 32 L 14 40" fill="none" stroke="#F5A524" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter"/>
+  <line x1="28" y1="40" x2="48" y2="40" stroke="#ECEDEE" stroke-width="3" stroke-linecap="square"/>
+</svg>

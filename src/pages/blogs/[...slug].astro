@@ -1,0 +1,151 @@
+---
+/**
+ * /blogs/[...slug] — single blog post.
+ *
+ * Renders the MDX body of a `blogs` collection entry with reading time,
+ * publish date, tag links, and prev/next navigation by publishedAt.
+ */
+
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import Reveal from '../../components/Reveal.astro';
+
+type BlogEntry = CollectionEntry<'blogs'>;
+
+interface PathProps {
+  entry: BlogEntry;
+  prev: BlogEntry | null;
+  next: BlogEntry | null;
+}
+
+export async function getStaticPaths() {
+  const entries: BlogEntry[] = await getCollection(
+    'blogs',
+    ({ data }) => !data.draft,
+  );
+
+  const sorted: BlogEntry[] = [...entries].sort(
+    (a: BlogEntry, b: BlogEntry): number =>
+      b.data.publishedAt.getTime() - a.data.publishedAt.getTime(),
+  );
+
+  return sorted.map((entry: BlogEntry, i: number) => {
+    const prev: BlogEntry | null = i > 0 ? sorted[i - 1] : null;
+    const next: BlogEntry | null = i < sorted.length - 1 ? sorted[i + 1] : null;
+    return {
+      params: { slug: entry.slug },
+      props: { entry, prev, next } satisfies PathProps,
+    };
+  });
+}
+
+type Props = PathProps;
+
+const { entry, prev, next } = Astro.props as Props;
+const { Content } = await entry.render();
+
+const formatDate = (d: Date): string => {
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  return `${y}.${m}.${day}`;
+};
+
+const wordCount: number = entry.body.trim().split(/\s+/).filter(Boolean).length;
+const readingMinutes: number = Math.max(1, Math.round(wordCount / 200));
+
+const formattedDate: string = formatDate(entry.data.publishedAt);
+
+const pageTitle = `${entry.data.title} — ~/blogs`;
+const pageDescription: string = entry.data.summary;
+---
+
+<Layout title={pageTitle} description={pageDescription}>
+  <section class="container-page pt-12 pb-24">
+      <Reveal as="div" delay={0} y={8}>
+        <a
+          href="/blogs"
+          class="font-mono text-xs text-muted hover:text-accent transition-colors inline-block mb-6"
+        >
+          ← ~/blogs
+        </a>
+      </Reveal>
+
+      <Reveal as="header" delay={60} y={16} class="mb-8">
+        <div class="font-mono text-[11px] uppercase tracking-widest text-faint mb-3">
+          // {formattedDate} · {readingMinutes} min read
+        </div>
+        <h1 class="font-mono text-[clamp(26px,4vw,40px)] font-bold tracking-tight leading-[1.2] mb-5">
+          {entry.data.title}
+        </h1>
+        <p class="font-mono text-base text-muted leading-relaxed mb-8">
+          {entry.data.summary}
+        </p>
+
+        {entry.data.tags.length > 0 ? (
+          <ul class="flex flex-wrap gap-1.5 mb-12" aria-label="tags" role="list">
+            {entry.data.tags.map((tag: string) => (
+              <li>
+                <a
+                  href={`/blogs/tag/${tag}/`}
+                  class="font-mono text-[11px] px-2 py-0.5 border border-line-strong rounded-sm text-muted hover:text-accent hover:border-accent transition-colors"
+                >
+                  {tag}
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </Reveal>
+
+      <Reveal as="div" delay={160} y={20}>
+        <article class="prose">
+          <Content />
+        </article>
+      </Reveal>
+
+      <Reveal
+        as="nav"
+        delay={220}
+        y={16}
+        class="flex items-center justify-between gap-4 mt-16 pt-8 border-t border-line font-mono text-xs"
+        aria-label="adjacent posts"
+      >
+        <div class="min-w-0 flex-1">
+          {prev ? (
+            <a
+              href={`/blogs/${prev.slug}/`}
+              class="flex flex-col gap-1 text-muted hover:text-accent transition-colors"
+            >
+              <span class="text-[11px] uppercase tracking-widest text-faint">← prev</span>
+              <span class="text-fg">{prev.data.title}</span>
+            </a>
+          ) : (
+            <span class="text-faint">// newest post</span>
+          )}
+        </div>
+        <div class="min-w-0 flex-1 text-right">
+          {next ? (
+            <a
+              href={`/blogs/${next.slug}/`}
+              class="flex flex-col gap-1 text-muted hover:text-accent transition-colors"
+            >
+              <span class="text-[11px] uppercase tracking-widest text-faint">next →</span>
+              <span class="text-fg">{next.data.title}</span>
+            </a>
+          ) : (
+            <span class="text-faint">// oldest post</span>
+          )}
+        </div>
+      </Reveal>
+
+      <Reveal as="div" delay={280} y={12} class="mt-8">
+        <a
+          href="/blogs"
+          class="font-mono text-xs text-muted hover:text-accent transition-colors"
+        >
+          all writing →
+        </a>
+      </Reveal>
+  </section>
+</Layout>

@@ -1,0 +1,33 @@
+{
+  "name": "surajrasaili-portfolio",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "pnpm run build && wrangler dev",
+    "astro": "astro",
+    "check": "astro check",
+    "deploy": "pnpm run build && wrangler deploy",
+    "cf-typegen": "wrangler types"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^12.6.13",
+    "@astrojs/mdx": "^4.0.0",
+    "@astrojs/sitemap": "^3.2.1",
+    "@tailwindcss/vite": "^4.2.4",
+    "astro": "^5.1.0",
+    "lenis": "^1.1.20",
+    "tailwindcss": "^4.2.4"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "typescript": "^5.7.2",
+    "wrangler": "^4.85.0"
+  },
+  "engines": {
+    "node": ">=20.10.0"
+  }
+}

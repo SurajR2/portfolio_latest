@@ -1,0 +1,74 @@
+---
+interface FooterLink {
+  href: string;
+  label: string;
+  external?: boolean;
+}
+
+const internal: readonly FooterLink[] = [
+  { href: '/work', label: '~/work' },
+  { href: '/blogs', label: '~/blogs' },
+  { href: '/stack', label: '~/stack' },
+  { href: '/contact', label: '~/contact' },
+] as const;
+
+const external: readonly FooterLink[] = [
+  { href: 'mailto:surajrasaili190@gmail.com', label: 'email' },
+  { href: 'https://github.com/SurajR2', label: 'github', external: true },
+  { href: 'https://www.linkedin.com/in/suraj-rasaili-b-k-619426210/', label: 'linkedin', external: true },
+] as const;
+
+const year: number = new Date().getFullYear();
+---
+
+<footer class="border-t border-line bg-base mt-24">
+  <div class="container-page grid grid-cols-1 md:grid-cols-[1.4fr_1fr_1fr] gap-8 md:gap-12 py-8">
+    <div class="flex flex-col gap-3">
+      <div class="font-mono text-xs text-fg">
+        <span class="text-accent font-semibold">$</span> <span class="text-muted">suraj --v</span>
+      </div>
+      <p class="font-mono text-[11px] text-faint leading-relaxed m-0">
+        Suraj Rasaili BK <span class="text-line-strong mx-1">·</span> lead software developer <span class="text-line-strong mx-1">·</span> Pokhara, NP
+      </p>
+    </div>
+
+    <div class="flex flex-col gap-3">
+      <h3 class="font-mono text-[11px] text-faint tracking-wide font-medium m-0">// site</h3>
+      <ul class="flex flex-col gap-1.5 m-0 p-0" role="list">
+        {internal.map((link) => (
+          <li>
+            <a
+              href={link.href}
+              class="font-mono text-xs text-muted hover:text-accent transition-colors duration-150"
+            >
+              {link.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div class="flex flex-col gap-3">
+      <h3 class="font-mono text-[11px] text-faint tracking-wide font-medium m-0">// elsewhere</h3>
+      <ul class="flex flex-col gap-1.5 m-0 p-0" role="list">
+        {external.map((link) => (
+          <li>
+            <a
+              href={link.href}
+              class="font-mono text-xs text-muted hover:text-accent transition-colors duration-150"
+              {...(link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+            >
+              {link.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+
+  <div class="border-t border-line">
+    <div class="container-page py-4 font-mono text-[11px] text-faint">
+      <span>// surajrasaili.com.np <span class="text-line-strong mx-1">·</span> v1 <span class="text-line-strong mx-1">·</span> {year}</span>
+    </div>
+  </div>
+</footer>

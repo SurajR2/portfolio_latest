@@ -1,0 +1,63 @@
+---
+/**
+ * BlogCard.astro
+ *
+ * Stacked-list row for /blogs and the home preview. Layout is a
+ * fixed-width left column with a YYYY.MM.DD date in mono text-faint,
+ * and a flexible right column with title (Inter 18/600) + summary
+ * (Inter 14/text-muted). Cards stack as a list separated by 1px borders.
+ */
+
+import Reveal from './Reveal.astro';
+
+export interface Props {
+  href: string;
+  title: string;
+  summary: string;
+  publishedAt: Date;
+  tags: string[];
+  delay?: number;
+}
+
+const { href, title, summary, publishedAt, tags, delay = 0 } = Astro.props;
+
+const stamp = (d: Date): string => {
+  // toISOString → "2026-04-25T00:00:00.000Z" → "2026.04.25"
+  const iso = d.toISOString().slice(0, 10);
+  return iso.replace(/-/g, '.');
+};
+---
+
+<Reveal as="li" delay={delay} y={16}>
+  <a
+    href={href}
+    aria-label={`${title} — blog post`}
+    class="grid grid-cols-1 sm:grid-cols-[120px_1fr] gap-4 sm:gap-6 py-6 border-b border-line group transition-colors duration-150"
+  >
+    <time
+      datetime={publishedAt.toISOString()}
+      class="font-mono text-xs text-faint pt-1 whitespace-nowrap"
+    >
+      {stamp(publishedAt)}
+    </time>
+    <div class="min-w-0">
+      <h3
+        class="font-mono text-base font-semibold text-fg mb-1.5 transition-colors duration-150 group-hover:text-accent"
+      >
+        {title}
+      </h3>
+      <p class="font-mono text-xs text-muted leading-relaxed mb-3 line-clamp-2">
+        {summary}
+      </p>
+      {tags.length > 0 && (
+        <ul class="flex flex-wrap gap-1.5" aria-label="tags">
+          {tags.map((t) => (
+            <li class="font-mono text-[10px] px-2 py-0.5 border border-line-strong rounded-sm text-muted">
+              {t}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  </a>
+</Reveal>

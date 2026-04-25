@@ -1,0 +1,64 @@
+---
+/**
+ * /work — selected work index.
+ *
+ * Lists all non-draft entries from the `work` content collection,
+ * sorted newest-first by year. Each card links to /work/${slug}/.
+ */
+
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import Reveal from '../../components/Reveal.astro';
+import WorkCard from '../../components/WorkCard.astro';
+
+type WorkEntry = CollectionEntry<'work'>;
+
+const entries: WorkEntry[] = await getCollection('work', ({ data }) => !data.draft);
+
+const sorted: WorkEntry[] = [...entries].sort(
+  (a: WorkEntry, b: WorkEntry): number => b.data.year - a.data.year,
+);
+
+const pageTitle = '~/work — Suraj Rasaili BK';
+const pageDescription =
+  'Selected backend systems, full-stack platforms, and engagements by Suraj Rasaili BK.';
+---
+
+<Layout title={pageTitle} description={pageDescription}>
+  <section class="container-page pt-16 pb-8">
+    <Reveal as="div" delay={0} y={12}>
+      <p class="crumbs"><span>~/</span> / <span>work</span></p>
+    </Reveal>
+    <Reveal as="div" delay={80} y={16}>
+      <h1 class="font-mono text-[clamp(28px,4.5vw,48px)] font-bold tracking-tight mt-3">selected work</h1>
+    </Reveal>
+    <Reveal as="div" delay={160} y={16}>
+      <p class="font-mono text-base text-muted mt-3 leading-relaxed">
+        Production systems and integration platforms. Each entry: context,
+        constraints, architecture, trade-offs, outcome.
+      </p>
+    </Reveal>
+  </section>
+
+  <section class="container-page pb-24" aria-label="work entries">
+    {sorted.length === 0 ? (
+      <Reveal as="div" delay={0}>
+        <p class="font-mono text-xs text-faint">// no entries published yet.</p>
+      </Reveal>
+    ) : (
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {sorted.map((entry: WorkEntry, i: number) => (
+          <Reveal as="div" delay={i * 80} y={20}>
+            <WorkCard
+              href={`/work/${entry.slug}/`}
+              meta={`// ${entry.data.year} · ${entry.data.role ?? 'engineer'}`}
+              title={entry.data.title}
+              summary={entry.data.summary}
+              tags={entry.data.stack}
+            />
+          </Reveal>
+        ))}
+      </div>
+    )}
+  </section>
+</Layout>

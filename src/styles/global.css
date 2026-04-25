@@ -1,0 +1,334 @@
+@import "tailwindcss";
+
+/* ========================================================================
+ * Brand theme tokens (Tailwind v4 @theme)
+ * Carbon + Amber palette, JetBrains Mono / Inter pairing.
+ * Generates utilities like: bg-base, text-fg, border-line-strong,
+ * text-accent, font-mono, etc.
+ * ====================================================================== */
+@theme {
+  --color-base: #0A0A0A;
+  --color-base-2: #111213;
+  --color-base-3: #18191B;
+
+  --color-line: #25272B;
+  --color-line-strong: #3A3D42;
+
+  --color-fg: #ECEDEE;
+  --color-muted: #8B9097;
+  --color-faint: #5A5F66;
+
+  --color-accent: #F5A524;
+  --color-accent-2: #B8761A;
+  --color-secondary: #06B6D4;
+
+  --color-success: #16A34A;
+  --color-warn: #EAB308;
+  --color-error: #EF4444;
+  --color-info: #3B82F6;
+
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-sm: 2px;
+  --radius: 4px;
+
+  --container-measure: 65ch;
+  --container-page: 1200px;
+}
+
+/* ========================================================================
+ * Base layer
+ * ====================================================================== */
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-base text-fg font-mono text-sm leading-relaxed;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 32px 32px;
+    background-attachment: fixed;
+    min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: var(--color-accent);
+    color: var(--color-base);
+  }
+
+  /* Scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line-strong) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--color-line-strong);
+    border-radius: 4px;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: var(--color-accent);
+  }
+
+  /* Headings + links default to mono */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-mono);
+    color: var(--color-fg);
+    letter-spacing: -0.01em;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  a:focus-visible,
+  button:focus-visible,
+  [role="button"]:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  summary:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  button {
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    border: 0;
+  }
+
+  hr {
+    border: 0;
+    border-top: 1px solid var(--color-line);
+  }
+
+  ul, ol {
+    list-style: none;
+  }
+}
+
+/* ========================================================================
+ * Component utilities — kept thin; pages use Tailwind utilities directly.
+ * ====================================================================== */
+@layer components {
+  .container-page {
+    max-width: var(--container-page);
+    margin-inline: auto;
+    padding-inline: 1.5rem; /* 24px */
+  }
+
+  @media (min-width: 768px) {
+    .container-page {
+      padding-inline: 2rem; /* 32px */
+    }
+  }
+
+  .measure {
+    max-width: var(--container-measure);
+  }
+
+  .crumbs {
+    @apply font-mono text-xs text-faint tracking-wide;
+  }
+
+  /* Skip link (a11y) — visually hidden until focused */
+  .skip-link {
+    position: absolute;
+    top: -100px;
+    left: 12px;
+    padding: 8px 12px;
+    background: var(--color-accent);
+    color: var(--color-base);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    border-radius: var(--radius-sm);
+    z-index: 100;
+    transition: top 150ms cubic-bezier(0.2, 0, 0.1, 1);
+  }
+  .skip-link:focus {
+    top: 12px;
+    outline: 2px solid var(--color-fg);
+    outline-offset: 2px;
+  }
+
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center font-mono text-[13px] font-medium tracking-wide;
+    min-height: 44px;
+    padding: 10px 18px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-line-strong);
+    color: var(--color-fg);
+    cursor: pointer;
+    transition:
+      border-color 150ms cubic-bezier(0.2, 0, 0.1, 1),
+      color 150ms cubic-bezier(0.2, 0, 0.1, 1),
+      background-color 150ms cubic-bezier(0.2, 0, 0.1, 1);
+  }
+  .btn:hover,
+  .btn:focus-visible {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    outline: none;
+  }
+  .btn-primary {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: var(--color-base);
+    font-weight: 600;
+  }
+  .btn-primary:hover,
+  .btn-primary:focus-visible {
+    background: var(--color-accent-2);
+    border-color: var(--color-accent-2);
+    color: var(--color-base);
+  }
+  .btn-ghost {
+    border-color: transparent;
+    color: var(--color-muted);
+    padding-inline: 10px;
+  }
+  .btn-ghost:hover,
+  .btn-ghost:focus-visible {
+    color: var(--color-accent);
+    border-color: transparent;
+  }
+
+  /* Long-form prose — JetBrains Mono everywhere for brand consistency.
+     No max-width here: prose fills its parent container so the left and
+     right edges line up with every other block on the page. */
+  .prose {
+    @apply font-mono text-fg;
+    font-size: 14px;
+    line-height: 1.75;
+  }
+  .prose h2,
+  .prose h3 {
+    font-family: var(--font-mono);
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+  }
+  .prose p {
+    margin-bottom: 1.25rem;
+  }
+  .prose code {
+    font-family: var(--font-mono);
+    background: var(--color-base-2);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    font-size: 0.9em;
+    color: var(--color-fg);
+  }
+  .prose pre {
+    background: var(--color-base-2);
+    border: 1px solid var(--color-line);
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius);
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.6;
+    margin-block: 1.5rem;
+  }
+  .prose pre code {
+    background: transparent;
+    padding: 0;
+  }
+  .prose blockquote {
+    border-left: 2px solid var(--color-accent);
+    padding-left: 1rem;
+    color: var(--color-muted);
+    margin-block: 1.25rem;
+  }
+  .prose ul,
+  .prose ol {
+    padding-left: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .prose ul li {
+    list-style: disc;
+  }
+  .prose ol li {
+    list-style: decimal;
+  }
+  .prose a {
+    color: var(--color-accent);
+    border-bottom: 1px dotted var(--color-accent);
+  }
+  .prose a:hover {
+    border-bottom-style: solid;
+  }
+}
+
+/* ========================================================================
+ * Lenis smooth-scroll integration
+ * ====================================================================== */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+html.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+html.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+/* ========================================================================
+ * Coarse-pointer touch-target floor (≥44px on standalone interactives)
+ * ====================================================================== */
+@media (pointer: coarse) {
+  nav a,
+  footer a,
+  .btn,
+  button[type="submit"],
+  button[type="button"] {
+    min-height: 44px;
+  }
+}
+
+/* ========================================================================
+ * Boot-preloader gate
+ * ====================================================================== */
+/* Set by the pre-paint script in Layout.astro <head> AND by the preloader's
+   own dismiss logic. Once present on <html>, the preloader is hidden on
+   every render — including view-transition navigations where the inline
+   component script does not re-run. */
+html.boot-seen .boot-preloader,
+html.boot-seen #boot-preloader {
+  display: none !important;
+}
+
+/* ========================================================================
+ * Reduced motion
+ * ====================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

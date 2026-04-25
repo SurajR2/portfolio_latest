@@ -1,0 +1,172 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Reveal from '../components/Reveal.astro';
+
+interface StackGroup {
+  readonly label: string;
+  readonly items: readonly string[];
+}
+
+const groups: readonly StackGroup[] = [
+  {
+    label: 'languages',
+    items: [
+      'TypeScript (production)',
+      'JavaScript (production)',
+      'SQL (production)',
+      'Python (familiar)',
+    ],
+  },
+  {
+    label: 'backend',
+    items: [
+      'NestJS (production)',
+      'Node.js (production)',
+      'Express.js (production)',
+      'RESTful APIs (production)',
+      'OpenAPI (production)',
+    ],
+  },
+  {
+    label: 'frontend',
+    items: [
+      'React.js (production)',
+      'Next.js (production)',
+      'TailwindCSS (production)',
+      'Redux (production)',
+      'GSAP (working)',
+      'HTML5 / CSS3 (production)',
+    ],
+  },
+  {
+    label: 'mobile',
+    items: ['React Native (working)'],
+  },
+  {
+    label: 'data',
+    items: [
+      'PostgreSQL (production)',
+      'MongoDB (working)',
+    ],
+  },
+  {
+    label: 'devops',
+    items: [
+      'Docker (production)',
+      'GitHub Actions (production)',
+      'AWS (working)',
+      'GCP (working)',
+      'CI/CD (production)',
+    ],
+  },
+  {
+    label: 'architecture',
+    items: [
+      'Domain-Driven Design (production)',
+      'Clean Architecture (production)',
+      'Modular monolith / bounded contexts (production)',
+    ],
+  },
+  {
+    label: 'testing',
+    items: [
+      'Jest (production)',
+      'Supertest (production)',
+      'React Testing Library (production)',
+    ],
+  },
+  {
+    label: 'tooling',
+    items: ['Git', 'Postman', 'OpenAPI codegen'],
+  },
+  {
+    label: 'process',
+    items: ['Scrum', 'Sprint planning', 'Code review', 'Mentorship'],
+  },
+] as const;
+
+type Competence = 'production' | 'working' | 'familiar' | null;
+
+interface ParsedItem {
+  readonly base: string;
+  readonly competence: Competence;
+}
+
+const COMPETENCE_RE = /\s*\((production|working|familiar)\)\s*$/;
+
+const parseItem = (raw: string): ParsedItem => {
+  const match = raw.match(COMPETENCE_RE);
+  if (!match) return { base: raw, competence: null };
+  const competence = match[1] as Exclude<Competence, null>;
+  const base = raw.replace(COMPETENCE_RE, '').trim();
+  return { base, competence };
+};
+---
+
+<Layout
+  title="~/stack — Suraj Rasaili BK"
+  description="Languages, backend frameworks, frontend tooling, data systems, and DevOps stack Suraj Rasaili BK uses in production."
+>
+  <section class="container-page pt-12 pb-24">
+    <Reveal as="header" class="mb-14">
+      <p class="crumbs">~/ <span>/</span> stack</p>
+      <h1 class="font-mono text-[clamp(28px,4vw,48px)] font-bold tracking-tight mt-3">
+        runtime · tooling · systems
+      </h1>
+      <p class="font-mono text-sm text-muted mt-3 leading-relaxed">
+        Grouped by layer, not ranked. Competence levels are explicit.
+      </p>
+    </Reveal>
+
+    <dl class="border-t border-line">
+      {groups.map((group, i) => (
+        <Reveal
+          as="div"
+          class="grid grid-cols-1 md:grid-cols-[180px_1fr] gap-4 md:gap-8 py-7 border-b border-line items-start"
+          delay={i * 60}
+        >
+          <dt class="font-mono text-xs uppercase tracking-widest text-muted md:pt-2.5">
+            {group.label}
+          </dt>
+          <dd class="flex flex-wrap gap-2.5 m-0">
+            {group.items.map((item) => {
+              const { base, competence } = parseItem(item);
+              return (
+                <span
+                  class:list={[
+                    'inline-flex items-center gap-1.5 font-mono text-xs px-3 py-2 border border-line-strong rounded-sm bg-base-2 leading-tight transition-colors duration-150 hover:border-accent',
+                    competence ? `pill-${competence}` : null,
+                  ]}
+                >
+                  <span class="text-fg">{base}</span>
+                  {competence ? (
+                    <span
+                      class:list={[
+                        'text-[11px] tracking-wide',
+                        competence === 'production' && 'text-accent',
+                        competence === 'working' && 'text-secondary',
+                        competence === 'familiar' && 'text-faint',
+                      ]}
+                    >
+                      ({competence})
+                    </span>
+                  ) : null}
+                </span>
+              );
+            })}
+          </dd>
+        </Reveal>
+      ))}
+    </dl>
+
+    <Reveal
+      as="footer"
+      class="mt-16 pt-8 border-t border-dashed border-line"
+      delay={groups.length * 60 + 40}
+    >
+      <p class="font-mono text-sm text-muted">
+        Stack is incidental. Correctness, observability, and extensibility are not.
+      </p>
+    </Reveal>
+  </section>
+</Layout>

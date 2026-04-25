@@ -1,0 +1,88 @@
+---
+/**
+ * /blogs — writing index.
+ *
+ * Lists all non-draft entries from the `blogs` collection, sorted by
+ * publishedAt descending. Includes a tag-filter strip linking to
+ * /blogs/tag/${tag}.
+ */
+
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import Reveal from '../../components/Reveal.astro';
+import BlogCard from '../../components/BlogCard.astro';
+
+type BlogEntry = CollectionEntry<'blogs'>;
+
+const entries: BlogEntry[] = await getCollection('blogs', ({ data }) => !data.draft);
+
+const sorted: BlogEntry[] = [...entries].sort(
+  (a: BlogEntry, b: BlogEntry): number =>
+    b.data.publishedAt.getTime() - a.data.publishedAt.getTime(),
+);
+
+const tagSet = new Set<string>();
+for (const entry of sorted) {
+  for (const tag of entry.data.tags) {
+    tagSet.add(tag);
+  }
+}
+const tags: readonly string[] = [...tagSet].sort((a, b) => a.localeCompare(b));
+
+const pageTitle = '~/blogs — Suraj Rasaili BK';
+const pageDescription =
+  'Long-form writing on systems design, data, integrations, performance, and ops.';
+---
+
+<Layout title={pageTitle} description={pageDescription}>
+  <section class="container-page pt-16 pb-6">
+    <Reveal as="div" delay={0} y={12}>
+      <p class="crumbs">~/ / <span>blogs</span></p>
+    </Reveal>
+    <Reveal as="div" delay={80} y={16}>
+      <h1 class="font-mono text-[clamp(28px,4.5vw,48px)] font-bold tracking-tight mt-3">writing</h1>
+    </Reveal>
+    <Reveal as="div" delay={160} y={16}>
+      <p class="font-mono text-base text-muted mt-3 leading-relaxed">
+        Long-form on systems design, data, integrations, performance, and ops.
+      </p>
+    </Reveal>
+  </section>
+
+  {tags.length > 0 ? (
+    <nav aria-label="tag filters" class="container-page pb-6 flex flex-wrap gap-2 border-b border-line">
+      <Reveal as="div" delay={220} y={12} class="flex flex-wrap gap-2">
+        {tags.map((tag: string) => (
+          <a
+            href={`/blogs/tag/${tag}/`}
+            class="font-mono text-xs px-2.5 py-1 border border-line-strong rounded-sm text-muted hover:text-accent hover:border-accent transition-colors"
+          >
+            ~/tag/{tag}
+          </a>
+        ))}
+      </Reveal>
+    </nav>
+  ) : null}
+
+  <section class="container-page pb-24" aria-label="blog entries">
+    {sorted.length === 0 ? (
+      <Reveal as="div" delay={0}>
+        <p class="font-mono text-xs text-faint">// no posts published yet.</p>
+      </Reveal>
+    ) : (
+      <ul class="flex flex-col" role="list">
+        {sorted.map((entry: BlogEntry, i: number) => (
+          <Reveal as="li" delay={i * 80} y={20}>
+            <BlogCard
+              href={`/blogs/${entry.slug}/`}
+              title={entry.data.title}
+              summary={entry.data.summary}
+              publishedAt={entry.data.publishedAt}
+              tags={entry.data.tags}
+            />
+          </Reveal>
+        ))}
+      </ul>
+    )}
+  </section>
+</Layout>

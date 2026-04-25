@@ -1,0 +1,36 @@
+---
+/**
+ * SectionHeading.astro
+ *
+ * Section header in the brand-board "section-header" idiom:
+ *   // 01    selected work                        latest · 3 of N
+ *
+ * Index sits in accent, the title in mono, an optional meta line in
+ * text-faint on the right. Bottom border establishes the section frame;
+ * consumers wrap actual content below.
+ */
+
+export interface Props {
+  /** Stable id used for in-page anchors (#work-preview, etc). */
+  id: string;
+  /** Two-digit section index, e.g. "01". */
+  index: string;
+  /** Section title (rendered mono). */
+  title: string;
+  /** Optional right-side metadata, e.g. "latest · 3 of N". */
+  meta?: string;
+}
+
+const { id, index, title, meta } = Astro.props;
+---
+
+<header>
+  <h2
+    id={id}
+    class="font-mono font-semibold flex items-baseline gap-3 pb-4 mb-8 border-b border-line scroll-mt-24"
+  >
+    <span class="text-accent text-xs tracking-widest uppercase">{`// ${index}`}</span>
+    <span class="text-fg text-xl">{title}</span>
+    {meta && <span class="text-faint text-xs ml-auto font-normal">{meta}</span>}
+  </h2>
+</header>
