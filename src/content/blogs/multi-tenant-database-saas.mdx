@@ -6,7 +6,7 @@ tags: ["saas", "multi-tenancy", "data", "systems-design", "postgres"]
 draft: false
 ---
 
-Every SaaS application is multi-tenant. The question is not *whether* you isolate tenants — it is *where* you draw the boundary. That decision shapes operational cost, blast radius, performance ceilings, and compliance posture for the lifetime of the platform. Treating it as a configuration option is how teams ship one model, hit a wall, and rewrite the data layer under pressure.
+Every SaaS application is multi-tenant. The question is not _whether_ you isolate tenants — it is _where_ you draw the boundary. That decision shapes operational cost, blast radius, performance ceilings, and compliance posture for the lifetime of the platform. Treating it as a configuration option is how teams ship one model, hit a wall, and rewrite the data layer under pressure.
 
 This post walks through the three canonical multi-tenancy models, the trade-offs each imposes, and the PostgreSQL patterns I have found durable in production.
 
@@ -30,17 +30,20 @@ The canonical taxonomy comes from the AWS SaaS Lens and is now standard vocabula
 Each tenant gets its own database (or its own database server). Application code routes connections by tenant.
 
 **Strengths**
+
 - Strongest isolation. A bad migration on tenant A cannot touch tenant B.
 - Per-tenant backup, restore, and export are trivial — they are entire databases.
-- Enterprise customers with regulatory requirements (HIPAA, financial data, EU data residency) often *require* this level of separation.
+- Enterprise customers with regulatory requirements (HIPAA, financial data, EU data residency) often _require_ this level of separation.
 - Performance is predictable; one tenant cannot exhaust shared connection pools or cache.
 
 **Weaknesses**
+
 - Operational cost scales linearly with tenant count. 10,000 small tenants means 10,000 databases to monitor, patch, and back up.
 - Schema migrations must run across every database. Tooling needs to handle this at scale.
 - Shared queries (analytics across all tenants) are awkward — you are federating queries across N databases.
 
 **When to choose it**
+
 - Small number of large enterprise customers.
 - Strict regulatory or contractual isolation requirements.
 - Per-tenant SLAs that require independent capacity.
@@ -50,18 +53,21 @@ Each tenant gets its own database (or its own database server). Application code
 All tenants share the same tables. Every row carries a `tenant_id` column. Every query filters by it.
 
 **Strengths**
+
 - Lowest operational cost per tenant. One database to manage.
 - Cross-tenant analytics and reporting are direct SQL.
 - Schema migrations run once.
 - Best resource utilization — tables, indexes, and connection pools are shared.
 
 **Weaknesses**
+
 - Isolation depends entirely on application correctness. One missing `WHERE tenant_id = ?` is a data leak.
 - Noisy neighbors are real: one tenant with a 10M-row table can slow queries for everyone if indexes are not tenant-aware.
 - Per-tenant export and deletion require careful row-level operations.
 - Compliance teams will ask hard questions about isolation guarantees.
 
 **When to choose it**
+
 - Many small-to-medium tenants, freemium funnels, B2B SMB.
 - Cost sensitivity is high, isolation requirements are moderate.
 - You can invest in row-level security and disciplined query patterns.
@@ -71,17 +77,20 @@ All tenants share the same tables. Every row carries a `tenant_id` column. Every
 One PostgreSQL database, but each tenant gets its own schema (`tenant_42.users`, `tenant_42.orders`, etc.).
 
 **Strengths**
+
 - Cleaner isolation than pool — query mistakes that omit a tenant filter fail outright instead of leaking data.
 - Per-tenant export is `pg_dump --schema=tenant_42`.
 - Migrations can be scripted across schemas without managing N databases.
 - Connection pooling is still shared; cost stays reasonable.
 
 **Weaknesses**
+
 - PostgreSQL has practical limits on the number of schemas — you start to feel them around the low-thousands range due to catalog bloat.
 - Cross-tenant queries are still possible but require schema iteration.
 - Application code must set `search_path` per request — this becomes a load-bearing pattern.
 
 **When to choose it**
+
 - Mid-market SaaS with hundreds to low-thousands of tenants.
 - You want better isolation than pool without the operational overhead of silo.
 - Tenant lifecycle (create/delete) is bounded — you are not spinning up 50 schemas per day.
@@ -175,6 +184,6 @@ After shipping multi-tenant systems for several years, here is the short list:
 
 ## Closing
 
-Multi-tenancy is not a checkbox. It is the architectural decision that quietly governs how a SaaS scales, how it survives audits, how it handles its largest customers, and how cleanly it can offboard them. Pick the model that fits the customer mix you are building for *now* — but design the data layer so the model can change for individual tenants without rewriting the application.
+Multi-tenancy is not a checkbox. It is the architectural decision that quietly governs how a SaaS scales, how it survives audits, how it handles its largest customers, and how cleanly it can offboard them. Pick the model that fits the customer mix you are building for _now_ — but design the data layer so the model can change for individual tenants without rewriting the application.
 
 The cost of getting this wrong is paid every quarter. The cost of getting it right is paid once, up front.

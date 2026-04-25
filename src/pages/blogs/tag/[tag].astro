@@ -88,7 +88,7 @@ const pageDescription = `Posts tagged ${tag}.`;
         {posts.map((entry: BlogEntry, i: number) => (
           <Reveal as="li" delay={i * 80} y={20}>
             <BlogCard
-              href={`/blogs/${entry.slug}/`}
+              href={`/blogs/${entry.id.replace(/\.(mdx?)$/, '')}/`}
               title={entry.data.title}
               summary={entry.data.summary}
               publishedAt={entry.data.publishedAt}

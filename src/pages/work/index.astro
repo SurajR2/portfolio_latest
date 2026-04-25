@@ -50,7 +50,7 @@ const pageDescription =
         {sorted.map((entry: WorkEntry, i: number) => (
           <Reveal as="div" delay={i * 80} y={20}>
             <WorkCard
-              href={`/work/${entry.slug}/`}
+              href={`/work/${entry.id.replace(/\.(mdx?)$/, '')}/`}
               meta={`// ${entry.data.year} · ${entry.data.role ?? 'engineer'}`}
               title={entry.data.title}
               summary={entry.data.summary}

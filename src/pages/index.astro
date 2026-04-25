@@ -19,7 +19,7 @@ import BlogCard from "../components/BlogCard.astro";
 import Reveal from "../components/Reveal.astro";
 
 interface WorkEntryShape {
-    slug: string;
+    id: string;
     data: {
         title: string;
         summary: string;
@@ -32,7 +32,7 @@ interface WorkEntryShape {
 }
 
 interface BlogEntryShape {
-    slug: string;
+    id: string;
     data: {
         title: string;
         summary: string;
@@ -98,7 +98,7 @@ const formatMeta = (entry: WorkEntryShape): string => {
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {workEntries.map((entry, i) => (
                         <WorkCard
-                            href={`/work/${entry.slug}`}
+                            href={`/work/${entry.id.replace(/\.(mdx?)$/, '')}`}
                             meta={formatMeta(entry)}
                             title={entry.data.title}
                             summary={entry.data.summary}
@@ -140,7 +140,7 @@ const formatMeta = (entry: WorkEntryShape): string => {
                 <ul class="flex flex-col">
                     {blogEntries.map((entry, i) => (
                         <BlogCard
-                            href={`/blogs/${entry.slug}`}
+                            href={`/blogs/${entry.id.replace(/\.(mdx?)$/, '')}`}
                             title={entry.data.title}
                             summary={entry.data.summary}
                             publishedAt={entry.data.publishedAt}
