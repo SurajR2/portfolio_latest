@@ -1,0 +1,206 @@
+---
+title: "A private API over WireGuard: why the network boundary is the security control, not the firewall rule"
+summary: "Run an API on one VPS, reach it from another only through an encrypted tunnel, and never open its port to anyone. A short, practical WireGuard setup — with the two firewall layers that trip everyone up, the pitfalls that actually bite, and a debugging method that converges."
+publishedAt: 2025-06-30
+tags: ["wireguard", "networking", "security", "vpn", "systems-design"]
+draft: false
+---
+
+Most services that get breached were never meant to face the public internet. They got exposed because exposure was the easy path — bind to `0.0.0.0`, open a port, "add the allowlist later." The allowlist is the part that gets forgotten, or quietly widened during an incident at 2am.
+
+There's a stronger default: don't put the service on the public internet at all. Run the API on one VPS, reach it from another _only_ through an encrypted tunnel, and never open its port to anyone. From the outside the service doesn't exist — there's no port to scan, no auth endpoint to brute-force, nothing to probe. The network boundary _is_ the security control.
+
+This is the short, practical setup for that pattern with WireGuard: one VPS running an API, a second calling it across a private tunnel.
+
+> I'm using **Oracle Cloud** for this demo, so the cloud-firewall steps below are Oracle-specific. The shape is identical on any provider — swap the VCN security-list step for your provider's equivalent (AWS security groups, GCP firewall rules, DigitalOcean cloud firewalls).
+
+## The mental model that prevents most of the pain
+
+There are **two layers of packet**, filtered in different places. Keep them separate in your head and most bugs become obvious:
+
+1. **The outer packet** — encrypted WireGuard, UDP on port `51820`, travelling over the public internet. This is what cloud firewalls see.
+2. **The inner packet** — your actual API traffic (TCP to port 3000), which only exists _inside_ the tunnel, on the `wg0` interface. The public internet never sees it.
+
+Almost every "it just hangs" bug comes from debugging the wrong layer.
+
+## The setup
+
+| | Public IP | WireGuard IP | Role |
+|---|---|---|---|
+| **Server** | `203.0.113.1` | `10.66.66.1` | WG listener + API |
+| **Client** | `198.51.100.2` | `10.66.66.2` | WG peer, calls the API |
+
+## Step 1 — Pick a tunnel subnet that doesn't collide
+
+Check what private subnet your provider already assigned:
+
+```bash
+ip addr show          # look at ens3 / eth0
+```
+
+If you see `inet 10.0.0.191/16`, your provider's private network owns the _entire_ `10.0.x.x` range. Your WireGuard subnet must not overlap it — if it does, the kernel routes tunnel traffic out the public NIC and nothing works, even though the handshake still succeeds. Oracle commonly hands out `10.0.0.0/16`, so avoid `10.0.0.x`. `10.66.66.0/24` is safe. This is the single most consequential choice in the setup.
+
+## Step 2 — Install WireGuard (both VPS)
+
+```bash
+sudo apt update && sudo apt install -y wireguard
+```
+
+## Step 3 — Generate keys (each VPS separately)
+
+```bash
+cd /etc/wireguard
+umask 077
+wg genkey | tee privatekey | wg pubkey > publickey
+```
+
+Each VPS keeps **its own** private key and puts the **other's** public key in its `[Peer]` block. Cross them and the handshake silently never forms.
+
+> **Security:** the private key is the whole identity of the peer — treat it like a password. The `umask 077` above keeps it readable only by root; never commit it to git, paste it into a config-management repo, or copy it between VPS. Only ever move the _public_ key around. If a private key leaks, rotate both peers' keys.
+
+## Step 4 — Write the configs
+
+**Server `/etc/wireguard/wg0.conf`:**
+
+```ini
+[Interface]
+Address = 10.66.66.1/24
+ListenPort = 51820
+PrivateKey = <SERVER_PRIVATE_KEY>
+
+[Peer]
+PublicKey = <CLIENT_PUBLIC_KEY>
+AllowedIPs = 10.66.66.2/32
+```
+
+**Client `/etc/wireguard/wg0.conf`:**
+
+```ini
+[Interface]
+Address = 10.66.66.2/24
+PrivateKey = <CLIENT_PRIVATE_KEY>
+
+[Peer]
+PublicKey = <SERVER_PUBLIC_KEY>
+Endpoint = 203.0.113.1:51820
+AllowedIPs = 10.66.66.1/32
+PersistentKeepalive = 25
+```
+
+Only the client has `Endpoint` (it dials out) and `PersistentKeepalive` (keeps the path alive through NAT). `AllowedIPs` is doing double duty — it's both the key selector _and_ the routing table for the tunnel.
+
+> **Security:** keep `AllowedIPs` as tight as the topology allows — `/32` for a point-to-point link, not `/24`. It's a cryptographic allowlist: a peer can only send packets whose source falls inside its `AllowedIPs`, so a narrow range means a compromised or misconfigured peer can't impersonate the rest of the subnet. Widen it only when you actually add hosts.
+
+## Step 5 — Open the firewall (both layers)
+
+### 5a. Cloud layer — on the server's subnet
+
+On Oracle: Console → Networking → your VCN → Security List (or the instance's NSG) → **Add Ingress Rule**:
+
+- **Source CIDR:** `0.0.0.0/0` (or lock to the client's public IP)
+- **IP Protocol:** **UDP** — the dropdown defaults to TCP and you _must_ change it
+- **Destination Port Range:** `51820`
+
+> For the testing purpose I've used  **`Source CIDR: 0.0.0.0/0`** , but it's recommended to use the client's public IP so the tunnel endpoint is completely protected — only your client VPS can even attempt a handshake.
+
+On another provider, this is the same rule in your security group / firewall. You do **not** open the API port (3000) here, or anywhere, ever.
+
+### 5b. OS layer — iptables on the server
+
+Oracle's Ubuntu images ship iptables rules directly — not ufw — ending in a catch-all `REJECT`. So `ufw status` reporting _inactive_ does **not** mean the host is open. Inspect the real chain:
+
+```bash
+sudo iptables -L INPUT -n --line-numbers
+```
+
+If there's a `REJECT ... icmp-host-prohibited` near the bottom, insert allow rules _above_ it:
+
+```bash
+sudo iptables -I INPUT -p udp --dport 51820 -j ACCEPT
+sudo iptables -I INPUT -i wg0 -j ACCEPT     # trust the tunnel interface
+sudo netfilter-persistent save
+```
+
+Trusting `wg0` wholesale is safe: only authenticated peers can put packets on it. The cryptography is the access control.
+
+## Step 6 — Bring up the tunnel (both VPS)
+
+```bash
+sudo wg-quick up wg0
+sudo systemctl enable wg-quick@wg0     # survive reboot
+sudo wg                                # want a handshake line + nonzero received
+```
+
+## Step 7 — Bind the API to the tunnel IP, never `0.0.0.0`
+
+This one line is the whole security boundary.
+
+```js
+const express = require('express');
+const app = express();
+const HOST = process.env.HOST || '10.66.66.1';   // tunnel IP, NOT 0.0.0.0
+const PORT = process.env.PORT || 3000;
+
+app.use(express.json());
+app.get('/api/health', (req, res) =>
+  res.json({ status: 'ok', timestamp: new Date().toISOString() }));
+
+app.listen(PORT, HOST, () => console.log(`Server on http://${HOST}:${PORT}`));
+```
+
+Confirm the bind — this is the proof the boundary holds:
+
+```bash
+ss -tlnp | grep 3000       # must show 10.66.66.1:3000, never 0.0.0.0:3000
+```
+
+If you run it under systemd, add `After=` / `Requires=wg-quick@wg0.service` so the API only starts once `wg0` exists — otherwise it races the tunnel on boot and crashes with `EADDRNOTAVAIL`.
+
+> **Security:** binding to `10.66.66.1` instead of `0.0.0.0` is what makes the port physically unreachable from the public NIC — it's the boundary, so verify it on every deploy rather than trusting it. Because the tunnel already authenticates and encrypts every caller, you can usually drop per-request API auth for internal-only services; if the data is sensitive, keep auth anyway as defence in depth.
+
+## Step 8 — Test from the client
+
+```bash
+curl http://10.66.66.1:3000/api/health
+```
+
+JSON back means you're done. The same request from the public internet fails — no route, no open port, nothing to probe. That failure is the feature.
+
+## The pitfalls that actually bite
+
+| # | Symptom | Cause | Fix |
+|---|---|---|---|
+| **1** | Handshake succeeds but curl hangs; `ip route get <wg-ip>` shows `dev ens3` | Tunnel subnet collides with the cloud private subnet | Renumber the tunnel to a non-overlapping range. The #1 killer. |
+| **2** | No handshake; `wg` shows bytes _sent_ but `0 received` | Cloud firewall dropping UDP 51820 — missing, set to TCP, or wrong subnet | Add a UDP 51820 ingress rule on the server's subnet |
+| **3** | `ufw status` inactive, yet packets blocked | Image filters via iptables directly, with a catch-all REJECT | Inspect `iptables -L INPUT`; insert ACCEPT above the REJECT |
+| **4** | Tunnel up but curl hangs (not "refused") | OS firewall drops the inner TCP arriving on `wg0` | `iptables -I INPUT -i wg0 -j ACCEPT` |
+| **5** | Unreachable through tunnel; works on `0.0.0.0` | App bound to `0.0.0.0` (exposed) or `127.0.0.1` (can't see tunnel) | Bind to the tunnel IP; verify with `ss -tlnp` |
+| **6** | Handshake goes stale; traffic dies after idle | Client behind NAT, no keepalive | `PersistentKeepalive = 25` on the client |
+| **7** | Packets reach server, no reply | Server peer `AllowedIPs` missing the client's tunnel IP | Set it to the client's IP (`/32`) |
+| **8** | Handshake never forms, keys look right | `PublicKey` mismatch — each side must hold the _other's_ key | Cross-check `wg show` on A against `[Peer]` on B |
+
+## A debugging method that converges
+
+When it hangs, don't guess — bisect the path:
+
+1. **Is the app serving?** Curl it locally on the server. Hangs → it's the app. JSON → continue.
+2. **Does the request enter the tunnel?** `sudo tcpdump -ni wg0 tcp port 3000`, then curl from the client. Nothing → client isn't routing in (Pitfall #1). SYN but no SYN-ACK → server can't reply (#7 / #4).
+3. **`ip route get <target-ip>` is the truth-teller.** It must say `dev wg0`. If it says `dev ens3` / `eth0`, you have a subnet collision — no firewall change will fix that.
+
+The golden rule: **a handshake succeeding does not prove the data path works.** The handshake travels by `Endpoint`; your data travels by `AllowedIPs` and the routing table. Confirm both, separately.
+
+## Hardening checklist
+
+A few recommendations worth applying before you call it production:
+
+- **Lock the cloud ingress rule to the client's public IP**, not `0.0.0.0/0` — the tunnel is encrypted either way, but a scoped rule means only your client can even reach the WireGuard port.
+- **Keep private keys root-only and out of version control**; rotate both peers if one ever leaks.
+- **Keep `AllowedIPs` and the API bind address as narrow as possible** — `/32` peers, tunnel-IP binds, never `0.0.0.0`.
+- **Don't open the API port anywhere** — if you ever find yourself adding a rule for port 3000, you've broken the model.
+- **Patch and reboot on a schedule**; WireGuard rides the kernel, so a current kernel is part of its security.
+
+## Closing
+
+This pattern is worth the extra setup not because WireGuard is fast (it is), but because it changes _what an attacker can even attempt_. A service on a public port with an allowlist is one misconfiguration away from exposure — and that misconfiguration will happen, on the day you can least afford it. A service that lives only on `wg0` has no public attack surface to misconfigure.
+
+Internal APIs, admin panels, database proxies, cross-region service calls — anything that has no business answering the public internet belongs behind a tunnel like this. Set it up once, keep the two-layer model in mind, and "is this endpoint exposed?" stops being a question you have to keep answering.

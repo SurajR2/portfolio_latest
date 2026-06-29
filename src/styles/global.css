@@ -278,6 +278,35 @@
   .prose a:hover {
     border-bottom-style: solid;
   }
+  /* Tables — visible borders to match the bordered code blocks. Wrapped in
+     a horizontal scroll on overflow so wide tables don't break the layout. */
+  .prose table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-block: 1.5rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius);
+  }
+  .prose thead {
+    background: var(--color-base-2);
+  }
+  .prose th,
+  .prose td {
+    border: 1px solid var(--color-line);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    vertical-align: top;
+  }
+  .prose th {
+    font-weight: 700;
+    color: var(--color-fg);
+  }
+  .prose tbody tr:nth-child(even) {
+    background: color-mix(in srgb, var(--color-base-2) 45%, transparent);
+  }
 }
 
 /* ========================================================================
