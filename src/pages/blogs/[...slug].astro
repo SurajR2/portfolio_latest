@@ -60,7 +60,7 @@ const pageTitle = `${entry.data.title} — ~/blogs`;
 const pageDescription: string = entry.data.summary;
 ---
 
-<Layout title={pageTitle} description={pageDescription}>
+<Layout title={pageTitle} description={pageDescription} image={entry.data.cover}>
   <section class="container-page pt-12 pb-24">
       <Reveal as="div" delay={0} y={8}>
         <a

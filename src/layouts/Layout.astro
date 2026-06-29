@@ -9,14 +9,21 @@ import '../styles/global.css';
 interface Props {
   title?: string;
   description?: string;
+  /** Social-card image — a site-absolute path like `/og/post.png`. */
+  image?: string;
 }
 
 const {
   title = 'Suraj Rasaili BK — Lead Software Developer',
   description = 'Lead software developer at TD (Chatblix). Backend systems and full-stack delivery with NestJS, TypeScript, PostgreSQL, React. Domain-Driven Design and Clean Architecture in production.',
+  image,
 } = Astro.props;
 
-const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://surajrasaili.com.np').toString();
+const siteOrigin = Astro.site ?? 'https://surajrasaili.com.np';
+const canonical = new URL(Astro.url.pathname, siteOrigin).toString();
+// Absolute URL is required: social scrapers don't resolve relative paths.
+const ogImage = image ? new URL(image, siteOrigin).toString() : undefined;
+const twitterCard = ogImage ? 'summary_large_image' : 'summary';
 ---
 
 <!doctype html>
@@ -38,10 +45,14 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://surajrasail
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:site_name" content="surajrasaili.com.np" />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    {ogImage && <meta property="og:image:width" content="1200" />}
+    {ogImage && <meta property="og:image:height" content="630" />}
 
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content={twitterCard} />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
+    {ogImage && <meta name="twitter:image" content={ogImage} />}
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
