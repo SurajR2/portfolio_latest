@@ -1,7 +1,7 @@
 ---
-title: "TD (Chatblix) — Lead software developer"
-summary: "Leading backend systems and full-stack delivery at TD (Chatblix). NestJS + TypeScript + PostgreSQL services built around Domain-Driven Design and Clean Architecture, shipped through Docker / GitHub Actions / AWS / GCP pipelines."
-role: "lead software developer"
+title: "TD (Chatblix) — Full stack developer"
+summary: "Backend systems and full-stack delivery at TD (Chatblix). NestJS + TypeScript + PostgreSQL services built around Domain-Driven Design and Clean Architecture, shipped through Docker / GitHub Actions / AWS / GCP pipelines."
+role: "full stack developer"
 year: 2025
 homepage: "https://chatblix.com"
 stack:

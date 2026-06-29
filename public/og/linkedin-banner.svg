@@ -1,0 +1,43 @@
+<svg width="1584" height="396" viewBox="0 0 1584 396" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">
+  <!-- base -->
+  <rect width="1584" height="396" fill="#0A0A0A"/>
+
+  <!-- subtle grid -->
+  <g stroke="#25272B" stroke-width="1" opacity="0.30">
+    <path d="M0 66 H1584 M0 132 H1584 M0 198 H1584 M0 264 H1584 M0 330 H1584"/>
+    <path d="M88 0 V396 M176 0 V396 M264 0 V396 M352 0 V396 M440 0 V396 M528 0 V396 M616 0 V396 M704 0 V396 M792 0 V396 M880 0 V396 M968 0 V396 M1056 0 V396 M1144 0 V396 M1232 0 V396 M1320 0 V396 M1408 0 V396 M1496 0 V396"/>
+  </g>
+  <!-- corner glows -->
+  <circle cx="1500" cy="40" r="240" fill="#F5A524" opacity="0.06"/>
+  <circle cx="90" cy="370" r="220" fill="#06B6D4" opacity="0.05"/>
+
+  <!-- terminal window -->
+  <rect x="32" y="28" width="1520" height="340" rx="8" fill="#111213" stroke="#25272B" stroke-width="1.5"/>
+
+  <!-- title bar -->
+  <line x1="32" y1="72" x2="1552" y2="72" stroke="#25272B" stroke-width="1.5"/>
+  <circle cx="64" cy="50" r="6.5" fill="#EF4444"/>
+  <circle cx="86" cy="50" r="6.5" fill="#EAB308"/>
+  <circle cx="108" cy="50" r="6.5" fill="#16A34A"/>
+  <text x="142" y="56" fill="#5A5F66" font-size="15">suraj@portfolio: ~</text>
+  <text x="1520" y="56" fill="#5A5F66" font-size="15" text-anchor="end">surajrasaili.com.np</text>
+
+  <!-- identity block (centered for mobile-crop safety) -->
+  <text x="792" y="140" font-size="20" text-anchor="middle"><tspan fill="#F5A524" font-weight="700">$</tspan><tspan fill="#8B9097" xml:space="preserve">  whoami</tspan></text>
+
+  <text x="792" y="212" fill="#ECEDEE" font-size="50" font-weight="700" letter-spacing="-1" text-anchor="middle">Suraj Rasaili BK</text>
+
+  <text x="792" y="256" font-size="22" text-anchor="middle"><tspan fill="#8B9097">Full Stack Developer</tspan><tspan fill="#3A3D42">  ·  </tspan><tspan fill="#8B9097">backend systems</tspan><tspan fill="#3A3D42">  ·  </tspan><tspan fill="#8B9097">clean architecture</tspan></text>
+
+  <!-- stack pills (centered) -->
+  <g font-size="17">
+    <rect x="543" y="296" width="132" height="36" rx="3" fill="none" stroke="#3A3D42" stroke-width="1.2"/>
+    <text x="609" y="320" fill="#06B6D4" text-anchor="middle">typescript</text>
+    <rect x="691" y="296" width="96" height="36" rx="3" fill="none" stroke="#3A3D42" stroke-width="1.2"/>
+    <text x="739" y="320" fill="#8B9097" text-anchor="middle">nestjs</text>
+    <rect x="803" y="296" width="134" height="36" rx="3" fill="none" stroke="#3A3D42" stroke-width="1.2"/>
+    <text x="870" y="320" fill="#8B9097" text-anchor="middle">postgresql</text>
+    <rect x="953" y="296" width="88" height="36" rx="3" fill="none" stroke="#3A3D42" stroke-width="1.2"/>
+    <text x="997" y="320" fill="#8B9097" text-anchor="middle">react</text>
+  </g>
+</svg>
